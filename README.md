@@ -27,7 +27,7 @@ Compose sends and event/task creation require review by default because **Block 
 ## How it works
 
 ```
-                    stdio              HTTP (localhost:8765-8774)
+                    stdio              HTTP (localhost:20765-20774)
   MCP Client  <----------->  Bridge  <--------------------->  Thunderbird
   (Claude, etc.)           mcp-bridge.cjs                    Extension + HTTP Server
 ```
@@ -348,7 +348,7 @@ The extension serves MCP over HTTP itself (`POST /`: `initialize`, `tools/list`,
 claude mcp add --transport http thunderbird "http://127.0.0.1:<port>/" --header "Authorization: Bearer <token>"
 ```
 
-- Read the port from `connection.json` after each server restart instead of pinning `8765`. The server tries ports 8765-8774; Options shows the selected port and a notice when it differs from the default.
+- Read the port from `connection.json` after each server restart instead of pinning `20765`. The server tries ports 20765-20774; Options shows the selected port and a notice when it differs from the default.
 - A stable token can survive restarts, but does not make the port stable. On shared machines, use the stdio bridge with automatic discovery instead of a pinned port with a stable token.
 - Responses are plain JSON; there is no SSE stream and no `Mcp-Session-Id`, both optional in the Streamable HTTP spec.
 - Path attachments are then read by the extension itself, under the same attachment policy as the bridge, and inside the Snap/Flatpak sandbox where applicable (the bridge is what makes host paths work for sandboxed installs).
@@ -404,7 +404,7 @@ External attachment links, including attachments removed with Thunderbird's **De
 
 - **Auth tokens**: The HTTP server requires a session-scoped bearer token. Generated on startup, written to `<TmpD>/thunderbird-mcp/connection.json` with 0600 permissions. The bridge re-discovers that file automatically across native installs, Snap, Flatpak, Betterbird Flatpak, and macOS temp directories.
 - **Stable tokens**: Optional stable tokens persist across restarts. The stored token is cleared on uninstall only while the add-on is enabled (best effort). If you disable the add-on before uninstalling, regenerate the token before using it again.
-- **Dynamic port**: Tries ports 8765-8774, records the actual port in the connection file. No hardcoded port dependency.
+- **Dynamic port**: Tries ports 20765-20774, records the actual port in the connection file. No hardcoded port dependency.
 - **Account access control**: Restrict which email accounts are visible to MCP clients via the settings page. Changes take effect immediately. A corrupt stored setting is shown as blocked, and saving it unchanged does not lift the restriction.
 - **Calendars and address books under account restrictions**: While any account restriction is active, calendar and address-book tools (listing, lookups by ID, and writes) are blocked unless you enable "Allow all calendars" or "Allow all address books" in the settings page. Both are off by default and grant access to all calendars or all address books respectively. Without an account restriction, these two permissions are not required. Tool Access and other safety settings still apply; "Allow all address books" does not grant contact writes.
 - **Tool access control**: Disable specific tools via the settings page. Disabled tools are hidden from `tools/list` and blocked at dispatch.
@@ -425,8 +425,8 @@ Reply and forward review windows follow Thunderbird's normal behavior when quoti
 | Extension not loading | Check Tools > Add-ons and Themes. Errors: Tools > Developer Tools > Error Console |
 | Connection refused | Make sure Thunderbird is running and the extension is enabled |
 | Bridge can't find `connection.json` | Set `THUNDERBIRD_MCP_CONNECTION_FILE` explicitly if your environment uses a non-standard temp/runtime path |
-| Server uses a port other than 8765 | Check Options or read `port` from `connection.json`; update direct HTTP clients to that port. The stdio bridge discovers it automatically. |
-| AnkiConnect and Thunderbird MCP conflict | AnkiConnect also defaults to `127.0.0.1:8765`. Start Anki/AnkiConnect before Thunderbird so MCP can choose another port, then use the recorded MCP port or the stdio bridge. |
+| Server uses a port other than 20765 | Check Options or read `port` from `connection.json`; update direct HTTP clients to that port. The stdio bridge discovers it automatically. |
+| AnkiConnect and Thunderbird MCP conflict | AnkiConnect defaults to `127.0.0.1:8765`; this server starts at `20765`, so they no longer collide. If you change the default, read the port from `connection.json` or use the stdio bridge. |
 | Bridge reports that a port is not answered by Thunderbird MCP | Check the server's current port in Options and `connection.json`, and whether another application is using that port. Reconnect the client after correcting its configuration. |
 | Missing recent emails | IMAP folders can be stale. Click the folder in Thunderbird to sync, or right-click > Properties > Repair Folder |
 | Tool not found after update | If you restrict Tool Access, new tools start unchecked. Enable the tool in Thunderbird MCP Options, save, then reconnect MCP (`/mcp` in Claude Code). Also enable any required parent tool. |

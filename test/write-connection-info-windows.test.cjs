@@ -201,7 +201,7 @@ describe("writeConnectionInfo directory hardening", () => {
       const { sandbox, written } = makeSandbox({ os, tmpDir });
       const writeConnectionInfo = loadWriteConnectionInfo(sandbox);
 
-      const result = writeConnectionInfo(8770, "token");
+      const result = writeConnectionInfo(20778770, "token");
 
       assert.equal(result, "thunderbird-mcp/connection.json");
       assert.deepEqual(tmpDir.chmodCalls, [0o700]);
@@ -256,7 +256,7 @@ describe("writeConnectionInfo directory hardening", () => {
         const { sandbox, opened, written } = makeSandbox({ os, tmpDir });
         const writeConnectionInfo = loadWriteConnectionInfo(sandbox);
 
-        const result = writeConnectionInfo(8770, "new-token");
+        const result = writeConnectionInfo(20778770, "new-token");
 
         assert.equal(result, "thunderbird-mcp/connection.json");
         assert.deepEqual(tmpDir.removeCalls, connectionFileExists ? [false] : []);
@@ -271,7 +271,7 @@ describe("writeConnectionInfo directory hardening", () => {
           behavior: 0,
           fileExisted: false,
         }]);
-        assert.deepEqual(JSON.parse(written[0]), { port: 8770, token: "new-token", pid: 4242 });
+        assert.deepEqual(JSON.parse(written[0]), { port: 20778770, token: "new-token", pid: 4242 });
       });
     }
   }
@@ -293,10 +293,10 @@ describe("writeConnectionInfo profile metadata", () => {
       const profileDirs = POSIX_PROFILE_DIRS;
       const { sandbox, written } = makeSandbox({ os, tmpDir: makeTmpDir({ permissions: 0o700 }), profileDirs });
 
-      loadWriteConnectionInfo(sandbox)(8770, "token");
+      loadWriteConnectionInfo(sandbox)(20778770, "token");
 
       assert.deepEqual(JSON.parse(written[0]), {
-        port: 8770, token: "token", pid: 4242,
+        port: 20778770, token: "token", pid: 4242,
         profileRoots: [profileDirs.ProfD.path, profileDirs.ProfD.normalizedPath,
           profileDirs.DefProfRt.path, profileDirs.DefProfRt.normalizedPath],
       });
@@ -307,7 +307,7 @@ describe("writeConnectionInfo profile metadata", () => {
     const profileDirs = WINDOWS_PROFILE_DIRS;
     const { sandbox, written } = makeSandbox({ os: "WINNT", tmpDir: makeTmpDir({}), profileDirs });
 
-    loadWriteConnectionInfo(sandbox)(8770, "token");
+    loadWriteConnectionInfo(sandbox)(20778770, "token");
 
     assert.deepEqual(JSON.parse(written[0]).profileRoots,
       [profileDirs.ProfD.path, profileDirs.ProfD.target, profileDirs.DefProfRt.path, profileDirs.DefProfRt.target]);
@@ -317,7 +317,7 @@ describe("writeConnectionInfo profile metadata", () => {
     const profileDirs = { ProfD: { path: WINDOWS_PROFILE_DIRS.ProfD.path, normalizedPath: WINDOWS_PROFILE_DIRS.ProfD.normalizedPath } };
     const { sandbox, written } = makeSandbox({ os: "WINNT", tmpDir: makeTmpDir({}), profileDirs });
 
-    loadWriteConnectionInfo(sandbox)(8770, "token");
+    loadWriteConnectionInfo(sandbox)(20778770, "token");
 
     assert.deepEqual(JSON.parse(written[0]).profileRoots, [profileDirs.ProfD.path, profileDirs.ProfD.normalizedPath]);
   });
@@ -336,7 +336,7 @@ describe("writeConnectionInfo profile metadata", () => {
     };
     const { sandbox, written } = makeSandbox({ os: "WINNT", tmpDir: makeTmpDir({}), profileDirs });
 
-    loadWriteConnectionInfo(sandbox)(8770, "token");
+    loadWriteConnectionInfo(sandbox)(20778770, "token");
 
     assert.deepEqual(JSON.parse(written[0]).profileRoots,
       [WINDOWS_PROFILE_CHILD, WINDOWS_TARGET_ROOT + "\\custom", WINDOWS_PROFILE_PARENT, WINDOWS_TARGET_ROOT]);
@@ -350,7 +350,7 @@ describe("writeConnectionInfo profile metadata", () => {
     };
     const { sandbox, written } = makeSandbox({ os: "WINNT", tmpDir: makeTmpDir({}), profileDirs });
 
-    loadWriteConnectionInfo(sandbox)(8770, "token");
+    loadWriteConnectionInfo(sandbox)(20778770, "token");
 
     assert.deepEqual(JSON.parse(written[0]).profileRoots,
       [WINDOWS_PROFILE_CHILD, WINDOWS_FINAL_PARENT + "\\Profiles\\custom", WINDOWS_PROFILE_PARENT, WINDOWS_FINAL_PARENT + "\\Profiles"]);
@@ -366,10 +366,10 @@ describe("writeConnectionInfo profile metadata", () => {
       const profileDirs = { ProfD: { path: WINDOWS_PROFILE_CHILD, ...extra } };
       const { sandbox, written } = makeSandbox({ os: "WINNT", tmpDir: makeTmpDir({}), profileDirs });
 
-      loadWriteConnectionInfo(sandbox)(8770, "token");
+      loadWriteConnectionInfo(sandbox)(20778770, "token");
 
       assert.deepEqual(JSON.parse(written[0]), {
-        port: 8770, token: "token", pid: 4242, profileRoots: [WINDOWS_PROFILE_CHILD],
+        port: 20778770, token: "token", pid: 4242, profileRoots: [WINDOWS_PROFILE_CHILD],
       });
     });
   }
@@ -378,9 +378,9 @@ describe("writeConnectionInfo profile metadata", () => {
     it(`retains the legacy connection fields when profile directories are unavailable on ${os}`, () => {
       const { sandbox, written } = makeSandbox({ os, tmpDir: makeTmpDir({ permissions: 0o700 }) });
 
-      loadWriteConnectionInfo(sandbox)(8770, "token");
+      loadWriteConnectionInfo(sandbox)(20778770, "token");
 
-      assert.deepEqual(JSON.parse(written[0]), { port: 8770, token: "token", pid: 4242 });
+      assert.deepEqual(JSON.parse(written[0]), { port: 20778770, token: "token", pid: 4242 });
     });
   }
 
@@ -391,7 +391,7 @@ describe("writeConnectionInfo profile metadata", () => {
     };
     const { sandbox, written } = makeSandbox({ os: "Linux", tmpDir: makeTmpDir({ permissions: 0o700 }), profileDirs });
 
-    loadWriteConnectionInfo(sandbox)(8770, "token");
+    loadWriteConnectionInfo(sandbox)(20778770, "token");
 
     assert.deepEqual(JSON.parse(written[0]).profileRoots,
       [profileDirs.ProfD.path, profileDirs.DefProfRt.path, profileDirs.DefProfRt.normalizedPath]);
@@ -401,7 +401,7 @@ describe("writeConnectionInfo profile metadata", () => {
     const profileDirs = { ProfD: { ...WINDOWS_PROFILE_DIRS.ProfD, readable: false } };
     const { sandbox, written } = makeSandbox({ os: "WINNT", tmpDir: makeTmpDir({}), profileDirs });
 
-    loadWriteConnectionInfo(sandbox)(8770, "token");
+    loadWriteConnectionInfo(sandbox)(20778770, "token");
 
     assert.deepEqual(JSON.parse(written[0]).profileRoots, [profileDirs.ProfD.path]);
   });
@@ -414,19 +414,19 @@ describe("writeConnectionInfo profile metadata", () => {
     };
     const { sandbox, written } = makeSandbox({ os: "Linux", tmpDir: makeTmpDir({ permissions: 0o700 }), profileDirs });
 
-    loadWriteConnectionInfo(sandbox)(8770, "token");
+    loadWriteConnectionInfo(sandbox)(20778770, "token");
 
     assert.deepEqual(JSON.parse(written[0]).profileRoots, [profileDirs.ProfD.path, shared]);
   });
 
   for (const extraBytes of [0, 1]) {
     it(`${extraBytes ? "omits" : "retains"} metadata at ${CONNECTION_READ_LIMIT + extraBytes} encoded bytes`, () => {
-      const empty = { port: 8770, token: "token", pid: 4242, profileRoots: [PROFILE_PREFIX] };
+      const empty = { port: 20778770, token: "token", pid: 4242, profileRoots: [PROFILE_PREFIX] };
       const root = PROFILE_PREFIX + "p".repeat(CONNECTION_READ_LIMIT + extraBytes - Buffer.byteLength(JSON.stringify(empty)));
       const { sandbox, written } = makeSandbox({ os: "Linux", tmpDir: makeTmpDir({ permissions: 0o700 }),
         profileDirs: { ProfD: { path: root } } });
 
-      loadWriteConnectionInfo(sandbox)(8770, "token");
+      loadWriteConnectionInfo(sandbox)(20778770, "token");
 
       assert.ok(Buffer.byteLength(written[0]) <= CONNECTION_READ_LIMIT);
       assert.deepEqual(JSON.parse(written[0]).profileRoots, extraBytes ? undefined : [root]);
@@ -443,7 +443,7 @@ describe("writeConnectionInfo profile metadata", () => {
         DefProfRt: { path: profiles },
       };
       const { sandbox, written } = makeSandbox({ os: "Linux", tmpDir: makeTmpDir({ permissions: 0o700 }), profileDirs });
-      const connectionPath = loadWriteConnectionInfo(sandbox)(8770, "token");
+      const connectionPath = loadWriteConnectionInfo(sandbox)(20778770, "token");
       const data = JSON.parse(written[0]);
       assert.deepEqual(data.profileRoots, [current, profiles]);
       assert.ok(Buffer.byteLength(written[0]) <= CONNECTION_READ_LIMIT);
@@ -457,11 +457,11 @@ describe("writeConnectionInfo profile metadata", () => {
   }
 
   it("retains the roots that fit when the combined metadata exceeds the limit", () => {
-    const empty = { port: 8770, token: "token", pid: 4242, profileRoots: [PROFILE_PREFIX] };
+    const empty = { port: 20778770, token: "token", pid: 4242, profileRoots: [PROFILE_PREFIX] };
     const current = PROFILE_PREFIX + "p".repeat(CONNECTION_READ_LIMIT - Buffer.byteLength(JSON.stringify(empty)));
     const { sandbox, written } = makeSandbox({ os: "Linux", tmpDir: makeTmpDir({ permissions: 0o700 }),
       profileDirs: { ProfD: { path: current }, DefProfRt: { path: POSIX_PROFILE_DIRS.DefProfRt.path } } });
-    loadWriteConnectionInfo(sandbox)(8770, "token");
+    loadWriteConnectionInfo(sandbox)(20778770, "token");
     assert.equal(Buffer.byteLength(written[0]), CONNECTION_READ_LIMIT);
     assert.deepEqual(JSON.parse(written[0]).profileRoots, [current]);
   });
@@ -469,11 +469,11 @@ describe("writeConnectionInfo profile metadata", () => {
   for (const os of ["Linux", "WINNT"]) {
     it(`does not let unsupported roots consume the metadata budget on ${os}`, () => {
       const current = os === "WINNT" ? WINDOWS_PROFILE_DIRS.ProfD.path : POSIX_PROFILE_DIRS.ProfD.path;
-      const empty = { port: 8770, token: "token", pid: 4242, profileRoots: ["//server/share/"] };
+      const empty = { port: 20778770, token: "token", pid: 4242, profileRoots: ["//server/share/"] };
       const unsupported = empty.profileRoots[0] + "p".repeat(CONNECTION_READ_LIMIT - Buffer.byteLength(JSON.stringify(empty)));
       const { sandbox, written } = makeSandbox({ os, tmpDir: makeTmpDir({ permissions: 0o700 }),
         profileDirs: { ProfD: { path: unsupported }, DefProfRt: { path: current } } });
-      loadWriteConnectionInfo(sandbox)(8770, "token");
+      loadWriteConnectionInfo(sandbox)(20778770, "token");
       assert.deepEqual(JSON.parse(written[0]).profileRoots, [current]);
       assert.ok(Buffer.byteLength(written[0]) <= CONNECTION_READ_LIMIT);
     });
@@ -481,14 +481,14 @@ describe("writeConnectionInfo profile metadata", () => {
 
   it("omits oversized UTF-8 metadata and does not repeatedly refresh the resulting legacy shape", () => {
     const root = PROFILE_PREFIX + "é".repeat(2100);
-    const candidate = JSON.stringify({ port: 8770, token: "token", pid: 4242, profileRoots: [root] });
+    const candidate = JSON.stringify({ port: 20778770, token: "token", pid: 4242, profileRoots: [root] });
     assert.ok(candidate.length < CONNECTION_READ_LIMIT);
     assert.ok(Buffer.byteLength(candidate) > CONNECTION_READ_LIMIT);
     const { sandbox, written } = makeSandbox({ os: "Linux", tmpDir: makeTmpDir({ permissions: 0o700 }),
       profileDirs: { ProfD: { path: root } } });
-    const connectionPath = loadWriteConnectionInfo(sandbox)(8770, "token");
+    const connectionPath = loadWriteConnectionInfo(sandbox)(20778770, "token");
     const data = JSON.parse(written[0]);
-    assert.deepEqual(data, { port: 8770, token: "token", pid: 4242 });
+    assert.deepEqual(data, { port: 20778770, token: "token", pid: 4242 });
     assert.ok(Buffer.byteLength(written[0]) <= CONNECTION_READ_LIMIT);
 
     const result = sandbox.ensureFreshConnectionInfo({

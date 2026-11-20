@@ -17,7 +17,7 @@ try {
  * Thunderbird MCP Server Extension
  * Exposes email, calendar, and contacts via MCP protocol over HTTP.
  *
- * Architecture: MCP Client <-> mcp-bridge.cjs (stdio<->HTTP) <-> This extension (port 8765)
+ * Architecture: MCP Client <-> mcp-bridge.cjs (stdio<->HTTP) <-> This extension (port 20765)
  *
  * Key quirks documented inline:
  * - MIME header decoding (mime2Decoded* properties)
@@ -30,7 +30,9 @@ const resProto = Cc[
   "@mozilla.org/network/protocol;1?name=resource"
 ].getService(Ci.nsISubstitutingProtocolHandler);
 
-const MCP_DEFAULT_PORT = 8765;
+// 20765 rather than 8765: cscs-key's OAuth callback binds localhost:8765, and
+// AnkiConnect defaults there too. Staying clear of 8765 keeps that port free.
+const MCP_DEFAULT_PORT = 20765;
 const MCP_MAX_PORT_ATTEMPTS = 10;
 const CONNECTION_FILE_REFRESH_MS = 30 * 1000;
 

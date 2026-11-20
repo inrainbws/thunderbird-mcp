@@ -70,7 +70,7 @@ function validateGetMessagesLimitInput() {
 // BEGIN OPTIONS SERVER STATUS
 const retryServerBtn = document.getElementById("retryServerBtn");
 const serverPortNotice = document.getElementById("serverPortNotice");
-const DEFAULT_SERVER_PORT = 8765;
+const DEFAULT_SERVER_PORT = 20765;
 
 async function loadServerInfo() {
   serverPortNotice.hidden = true;

@@ -33,7 +33,7 @@ const { ensureFreshConnectionInfo } = loadConnectionInfoRefreshHelpers();
 
 function makeOptions(overrides) {
   return {
-    port: 8765,
+    port: 20765,
     token: "token",
     expectedPid: 1234,
     onCheckError() {},
@@ -75,7 +75,7 @@ describe("connection info refresh decision", () => {
     const result = ensureFreshConnectionInfo(makeOptions({
       readConnectionInfo: () => ({
         path: "/tmp/thunderbird-mcp/connection.json",
-        data: { port: 8765, token: "token", pid: 1234 },
+        data: { port: 20765, token: "token", pid: 1234 },
       }),
       writeConnectionInfo() {
         throw new Error("writeConnectionInfo should not be called");
@@ -99,21 +99,21 @@ describe("connection info refresh decision", () => {
     }));
 
     assert.equal(result, "/tmp/thunderbird-mcp/connection.json");
-    assert.deepEqual(writes, [{ port: 8765, token: "token" }]);
+    assert.deepEqual(writes, [{ port: 20765, token: "token" }]);
   });
 
   for (const staleCase of [
     {
       name: "port changed",
-      data: { port: 8766, token: "token", pid: 1234 },
+      data: { port: 20766, token: "token", pid: 1234 },
     },
     {
       name: "token changed",
-      data: { port: 8765, token: "old-token", pid: 1234 },
+      data: { port: 20765, token: "old-token", pid: 1234 },
     },
     {
       name: "pid changed",
-      data: { port: 8765, token: "token", pid: 4321 },
+      data: { port: 20765, token: "token", pid: 4321 },
     },
   ]) {
     it(`rewrites when connection.json is stale: ${staleCase.name}`, () => {
@@ -125,7 +125,7 @@ describe("connection info refresh decision", () => {
         }),
         writeConnectionInfo(port, token) {
           writeCount++;
-          assert.equal(port, 8765);
+          assert.equal(port, 20765);
           assert.equal(token, "token");
           return "/tmp/thunderbird-mcp/connection.json";
         },
@@ -166,7 +166,7 @@ describe("connection info refresh decision", () => {
       expectedProfileRoots: PROFILE_ROOTS,
       readConnectionInfo: () => ({
         path: "/tmp/thunderbird-mcp/connection.json",
-        data: { port: 8765, token: "token", pid: 1234, profileRoots: [...PROFILE_ROOTS] },
+        data: { port: 20765, token: "token", pid: 1234, profileRoots: [...PROFILE_ROOTS] },
       }),
       writeConnectionInfo() { assert.fail("Matching metadata must not cause a write"); },
     }));
@@ -187,7 +187,7 @@ describe("connection info refresh decision", () => {
         expectedProfileRoots: PROFILE_ROOTS,
         readConnectionInfo: () => ({
           path: "/tmp/thunderbird-mcp/connection.json",
-          data: { port: 8765, token: "token", pid: 1234, ...(profileRoots === undefined ? {} : { profileRoots }) },
+          data: { port: 20765, token: "token", pid: 1234, ...(profileRoots === undefined ? {} : { profileRoots }) },
         }),
         writeConnectionInfo(port, token) {
           writes.push({ port, token });
@@ -196,7 +196,7 @@ describe("connection info refresh decision", () => {
       }));
 
       assert.equal(result, "/tmp/thunderbird-mcp/connection.json");
-      assert.deepEqual(writes, [{ port: 8765, token: "token" }]);
+      assert.deepEqual(writes, [{ port: 20765, token: "token" }]);
     });
   }
 

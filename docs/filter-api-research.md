@@ -40,11 +40,11 @@ Thunderbird exposes full filter CRUD + execution via XPCOM interfaces. Our exten
 ## 1. Current Extension Architecture
 
 ```
-MCP Client <--stdio--> mcp-bridge.cjs <--HTTP POST--> Thunderbird Extension (port 8765)
+MCP Client <--stdio--> mcp-bridge.cjs <--HTTP POST--> Thunderbird Extension (port 20765)
 ```
 
 - **mcp-bridge.cjs**: Node.js process, translates stdio JSON-RPC ↔ HTTP
-- **Extension**: Embedded HTTP server (`httpd.sys.mjs`) on `localhost:8765`
+- **Extension**: Embedded HTTP server (`httpd.sys.mjs`) on `localhost:20765`
 - **Protocol**: JSON-RPC 2.0 with methods `tools/list` and `tools/call`
 - **API file**: `extension/mcp_server/api.js` (~1920 lines, monolithic — all tool defs + handlers)
 

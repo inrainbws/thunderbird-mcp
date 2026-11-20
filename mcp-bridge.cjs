@@ -3,7 +3,7 @@
  * MCP Bridge for Thunderbird
  *
  * Converts stdio MCP protocol to HTTP requests for the Thunderbird MCP extension.
- * The extension exposes an HTTP endpoint on localhost:8765.
+ * The extension exposes an HTTP endpoint on localhost:20765.
  */
 
 const http = require('http');

@@ -192,7 +192,7 @@ function loadServerLifecycle(overrides = {}) {
     readAccessListPref: access.readAccessListPref,
     buildTools: access.buildTools,
     getConfiguredGetMessagesLimit: access.getConfiguredGetMessagesLimit,
-    MCP_DEFAULT_PORT: 8765,
+    MCP_DEFAULT_PORT: 20765,
     MCP_MAX_PORT_ATTEMPTS: 10,
     CONNECTION_FILE_REFRESH_MS: 30000,
     console: {
@@ -582,20 +582,20 @@ describe("post-bind listener ownership", () => {
   for (const listenAll of [false, true]) {
     it(`stops a foreign listener before rebinding (${listenAll ? "listenAll" : "loopback"})`, async () => {
       const { api, state } = loadServerLifecycle({
-        listenAll, holdStops: true, probeResult: port => port === 8765 ? "foreign" : "ours",
+        listenAll, holdStops: true, probeResult: port => port === 20765 ? "foreign" : "ours",
       });
       const pending = api.start();
       await new Promise(setImmediate);
-      assert.deepEqual(state.servers[0].binds, [8765]);
+      assert.deepEqual(state.servers[0].binds, [20765]);
       assert.equal(state.pendingStops.length, 1);
       assert.equal(state.connection, null);
       assert.equal((await api.getServerInfo()).running, false);
       state.pendingStops.shift()();
-      assert.equal((await pending).port, 8766);
-      assert.deepEqual(state.servers[0].binds, [8765, 8766]);
+      assert.equal((await pending).port, 20766);
+      assert.deepEqual(state.servers[0].binds, [20765, 20766]);
       assert.deepEqual(state.servers[0].bindModes, Array(2).fill(listenAll ? "listenAll" : "loopback"));
       assert.equal(state.servers[0].stops, 1);
-      assert.deepEqual(state.connectionWrites.map(info => info.port), [8766]);
+      assert.deepEqual(state.connectionWrites.map(info => info.port), [20766]);
       assert.deepEqual([...state.servers[0].handlers.keys()], ["/"]);
       assert.notEqual(state.channels[0].url.pathname, state.channels[1].url.pathname);
     });
@@ -617,25 +617,25 @@ describe("post-bind listener ownership", () => {
       }]));
       const { api, state } = loadServerLifecycle({
         profileDirs, holdProbes: true, holdStops: true,
-        probeResult: port => port === 8765 ? "foreign" : "ours",
+        probeResult: port => port === 20765 ? "foreign" : "ours",
       });
       const pending = api.start();
       assert.deepEqual(state.connectionWrites, []);
       state.channels[0].respond();
       await new Promise(setImmediate);
-      assert.deepEqual(state.servers[0].binds, [8765]);
+      assert.deepEqual(state.servers[0].binds, [20765]);
       assert.equal(state.pendingStops.length, 1);
       assert.deepEqual(state.connectionWrites, [], "do not publish the rejected port while stopping");
       state.pendingStops.shift()();
       await new Promise(setImmediate);
-      assert.deepEqual(state.servers[0].binds, [8765, 8766]);
+      assert.deepEqual(state.servers[0].binds, [20765, 20766]);
       assert.deepEqual(state.connectionWrites, [], "do not publish before the final probe settles");
       assert.equal(state.timers.filter(timer => timer.type === REFRESH_TIMER_TYPE).length, 0);
       state.channels[1].respond();
-      assert.equal((await pending).port, 8766);
+      assert.equal((await pending).port, 20766);
 
       const expected = {
-        port: 8766, token: "a".repeat(64), pid: 4242,
+        port: 20766, token: "a".repeat(64), pid: 4242,
         profileRoots: oversized ? [roots.DefProfRt] : Object.values(roots),
       };
       assert.deepEqual(state.connectionWrites, [expected]);
@@ -646,7 +646,7 @@ describe("post-bind listener ownership", () => {
 
       for (const stale of [
         null,
-        { ...expected, port: 8765 },
+        { ...expected, port: 20765 },
         { ...expected, profileRoots: undefined },
         { ...expected, profileRoots: ["C:/stale-profile"] },
       ]) {
@@ -675,7 +675,7 @@ describe("post-bind listener ownership", () => {
   ]) {
     it(`keeps the port inconclusive after a ${name}`, async () => {
       const { api, state } = loadServerLifecycle({
-        probeResult: port => port === 8765 ? "foreign" : "ours",
+        probeResult: port => port === 20765 ? "foreign" : "ours",
         responseStatus, responseHeadReceived, bodyChunks: [],
       });
       const pending = api.start();
@@ -686,11 +686,11 @@ describe("post-bind listener ownership", () => {
       }
       const result = await pending;
       assert.equal(result.success, true);
-      assert.equal(result.port, 8765);
-      assert.deepEqual(state.servers[0].binds, [8765]);
+      assert.equal(result.port, 20765);
+      assert.deepEqual(state.servers[0].binds, [20765]);
       assert.equal(state.servers[0].stops, 0);
-      assert.deepEqual(state.connectionWrites.map(info => info.port), [8765]);
-      assert.ok(state.logs.some(args => String(args[0]).includes("inconclusive on port 8765")));
+      assert.deepEqual(state.connectionWrites.map(info => info.port), [20765]);
+      assert.ok(state.logs.some(args => String(args[0]).includes("inconclusive on port 20765")));
       assert.equal(state.activityObservers.size, 0);
     });
   }
@@ -698,11 +698,11 @@ describe("post-bind listener ownership", () => {
   for (const responseStatus of [201, 302, 403, 404, 500]) {
     it(`advances after a complete ${responseStatus} response head without a body`, async () => {
       const { api, state } = loadServerLifecycle({
-        probeResult: port => port === 8765 ? "foreign" : "ours",
+        probeResult: port => port === 20765 ? "foreign" : "ours",
         responseStatus, bodyChunks: [],
       });
-      assert.equal((await api.start()).port, 8766);
-      assert.deepEqual(state.servers[0].binds, [8765, 8766]);
+      assert.equal((await api.start()).port, 20766);
+      assert.deepEqual(state.servers[0].binds, [20765, 20766]);
       assert.equal(state.servers[0].stops, 1);
       assert.equal(state.activityObservers.size, 0);
     });
@@ -710,12 +710,12 @@ describe("post-bind listener ownership", () => {
 
   it("keeps an unobserved complete 200 inconclusive because its status may be synthesized", async () => {
     const { api, state } = loadServerLifecycle({
-      probeResult: port => port === 8765 ? "foreign" : "ours", responseStatus: 200,
+      probeResult: port => port === 20765 ? "foreign" : "ours", responseStatus: 200,
     });
-    assert.equal((await api.start()).port, 8765);
-    assert.deepEqual(state.servers[0].binds, [8765]);
+    assert.equal((await api.start()).port, 20765);
+    assert.deepEqual(state.servers[0].binds, [20765]);
     assert.ok(state.channels[0].bytesRead > 0, "a body does not prove that a status code was present");
-    assert.ok(state.logs.some(args => String(args[0]).includes("inconclusive on port 8765")));
+    assert.ok(state.logs.some(args => String(args[0]).includes("inconclusive on port 20765")));
   });
 
   it("requires the head event to belong to this channel and response", async () => {
@@ -732,17 +732,17 @@ describe("post-bind listener ownership", () => {
     channel.respond();
     assert.equal(state.connection, null);
     state.timers[0].callback();
-    assert.equal((await pending).port, 8765);
-    assert.ok(state.logs.some(args => String(args[0]).includes("inconclusive on port 8765")));
+    assert.equal((await pending).port, 20765);
+    assert.ok(state.logs.some(args => String(args[0]).includes("inconclusive on port 20765")));
     assert.equal(state.activityObservers.size, 0);
     // A delayed event cannot revise a settled probe or its published port.
     observer.observeActivity(channel, type, subtype);
-    assert.deepEqual(state.connectionWrites.map(info => info.port), [8765]);
+    assert.deepEqual(state.connectionWrites.map(info => info.port), [20765]);
   });
 
   it("accepts a matching head event delivered after onStartRequest", async () => {
     const { api, state } = loadServerLifecycle({ holdProbes: true,
-      probeResult: port => port === 8765 ? "foreign" : "ours" });
+      probeResult: port => port === 20765 ? "foreign" : "ours" });
     const pending = api.start();
     const channel = state.channels[0];
     channel.listener.onStartRequest(channel);
@@ -750,13 +750,13 @@ describe("post-bind listener ownership", () => {
     channel.listener.onStopRequest(channel, 0);
     await new Promise(setImmediate);
     state.channels[1].respond();
-    assert.equal((await pending).port, 8766);
+    assert.equal((await pending).port, 20766);
     assert.equal(state.activityObservers.size, 0);
   });
 
   it("allows matching head activity to arrive after onStopRequest within the deadline", async () => {
     const { api, state } = loadServerLifecycle({ holdProbes: true,
-      probeResult: port => port === 8765 ? "foreign" : "ours" });
+      probeResult: port => port === 20765 ? "foreign" : "ours" });
     const pending = api.start();
     const channel = state.channels[0];
     channel.listener.onStartRequest(channel);
@@ -768,14 +768,14 @@ describe("post-bind listener ownership", () => {
     state.timers[0].callback();
     await new Promise(setImmediate);
     state.channels[1].respond();
-    assert.equal((await pending).port, 8766);
+    assert.equal((await pending).port, 20766);
     assert.equal(state.activityObservers.size, 0);
   });
 
   it("accepts our handler observation without any response-head activity", async () => {
     const { api, state } = loadServerLifecycle({ responseHeadReceived: false });
-    assert.equal((await api.start()).port, 8765);
-    assert.deepEqual(state.servers[0].binds, [8765]);
+    assert.equal((await api.start()).port, 20765);
+    assert.deepEqual(state.servers[0].binds, [20765]);
     assert.ok(!state.logs.some(args => String(args[0]).includes("inconclusive")));
     assert.equal(state.activityObservers.size, 0);
   });
@@ -807,8 +807,8 @@ describe("post-bind listener ownership", () => {
   ]) {
     it(`keeps an inconclusive port: ${JSON.stringify(overrides)}`, async () => {
       const { api, state } = loadServerLifecycle(overrides);
-      assert.equal((await api.start()).port, 8765);
-      assert.deepEqual(state.servers[0].binds, [8765]);
+      assert.equal((await api.start()).port, 20765);
+      assert.deepEqual(state.servers[0].binds, [20765]);
       assert.ok(state.logs.some(args => String(args[0]).includes("inconclusive")));
     });
   }
@@ -819,9 +819,9 @@ describe("post-bind listener ownership", () => {
     it(`keeps the bound port after ${property}`, async () => {
       const { api, state } = loadServerLifecycle({ probeResult: "foreign", [property]: new Error(property) });
       assert.equal((await api.start()).success, true);
-      assert.deepEqual(state.servers[0].binds, [8765]);
+      assert.deepEqual(state.servers[0].binds, [20765]);
       assert.equal(state.servers[0].stops, 0);
-      assert.equal(state.connection.port, 8765);
+      assert.equal(state.connection.port, 20765);
       assert.deepEqual([...state.servers[0].handlers.keys()], ["/"]);
       assert.ok(state.logs.some(args => String(args[0]).includes("inconclusive")));
       assert.equal(state.activityObservers.size, 0);
@@ -836,7 +836,7 @@ describe("post-bind listener ownership", () => {
         sandbox.probeListenerOwnership = () => { throw new Error("unexpected probe failure"); };
       }
       assert.equal((await api.start()).success, true);
-      assert.deepEqual(state.servers[0].binds, [8765]);
+      assert.deepEqual(state.servers[0].binds, [20765]);
       assert.equal(state.servers[0].stops, 0);
     }
   });
@@ -844,9 +844,9 @@ describe("post-bind listener ownership", () => {
   it("keeps the listening port when stopping a foreign listener throws", async () => {
     const { api, state } = loadServerLifecycle({ probeResult: "foreign", stopError: new Error("stop failed") });
     assert.equal((await api.start()).success, true);
-    assert.deepEqual(state.servers[0].binds, [8765]);
+    assert.deepEqual(state.servers[0].binds, [20765]);
     assert.equal(state.servers[0].listening, true);
-    assert.equal(state.connection.port, 8765);
+    assert.equal(state.connection.port, 20765);
     assert.ok(state.logs.some(args => String(args[0]).includes("could not stop the listener")));
   });
 
@@ -855,7 +855,7 @@ describe("post-bind listener ownership", () => {
     const pending = api.start();
     const channel = state.channels[0];
     state.timers[0].callback();
-    assert.equal((await pending).port, 8765);
+    assert.equal((await pending).port, 20765);
     const connection = state.connection;
     channel.respond();
     channel.deliver("late data");
@@ -884,17 +884,17 @@ describe("post-bind listener ownership", () => {
     assert.equal(state.connection, null);
     // No response from the second port: it must remain inconclusive.
     state.timers[1].callback();
-    assert.equal((await pending).port, 8766);
-    assert.ok(state.logs.some(args => String(args[0]).includes("inconclusive on port 8766")));
+    assert.equal((await pending).port, 20766);
+    assert.ok(state.logs.some(args => String(args[0]).includes("inconclusive on port 20766")));
   });
 
   for (const headers of [false, true]) {
     it(`caps ${headers ? "headers before body" : "incremental body reads"} and cancels the channel`, async () => {
       const { api, sandbox, state } = loadServerLifecycle({
-        probeResult: port => port === 8765 ? "foreign" : "ours",
+        probeResult: port => port === 20765 ? "foreign" : "ours",
         ...(headers ? { responseHeaders: { "X-Pad": "a".repeat(8192) } } : { bodyChunks: ["a".repeat(3000), "b".repeat(8192)] }),
       });
-      assert.equal((await api.start()).port, 8766);
+      assert.equal((await api.start()).port, 20766);
       assert.equal(state.channels[0].cancelled, true);
       assert.ok(state.channels[0].bytesRead <= sandbox.probeSettings.maxBytes);
       if (headers) assert.equal(state.channels[0].bytesRead, 0);
@@ -905,11 +905,11 @@ describe("post-bind listener ownership", () => {
   for (const initialBusy of [0, 2]) {
     it(`falls back to the first bound port when all probes are foreign (${initialBusy} initial busy ports)`, async () => {
       const { api, state } = loadServerLifecycle({
-        probeResult: "foreign", bindError: port => port < 8765 + initialBusy ? new Error("busy") : null,
+        probeResult: "foreign", bindError: port => port < 20765 + initialBusy ? new Error("busy") : null,
       });
       const result = await api.start();
       assert.equal(result.success, true);
-      assert.equal(result.port, 8765 + initialBusy);
+      assert.equal(result.port, 20765 + initialBusy);
       assert.equal(state.servers[0].listening, true);
       assert.equal(state.channels.length, 10 - initialBusy);
       assert.deepEqual(state.connectionWrites.map(info => info.port), [result.port]);
@@ -920,20 +920,20 @@ describe("post-bind listener ownership", () => {
   it("uses normal bind fallback if the first port cannot be rebound", async () => {
     const { api, state } = loadServerLifecycle({
       probeResult: "foreign",
-      bindError: (port, attempt) => attempt > 10 && port === 8765 ? new Error("busy now") : null,
+      bindError: (port, attempt) => attempt > 10 && port === 20765 ? new Error("busy now") : null,
     });
-    assert.equal((await api.start()).port, 8766);
-    assert.deepEqual(state.servers[0].binds.slice(-2), [8765, 8766]);
+    assert.equal((await api.start()).port, 20766);
+    assert.deepEqual(state.servers[0].binds.slice(-2), [20765, 20766]);
     assert.equal(state.channels.length, 10);
   });
 
   it("recovers from a mix of foreign responses and native bind failures", async () => {
     const { api, state } = loadServerLifecycle({
-      probeResult: "foreign", bindError: port => port === 8765 ? null : new Error("busy"),
+      probeResult: "foreign", bindError: port => port === 20765 ? null : new Error("busy"),
     });
-    assert.equal((await api.start()).port, 8765);
+    assert.equal((await api.start()).port, 20765);
     assert.equal(state.channels.length, 1);
-    assert.deepEqual(state.connectionWrites.map(info => info.port), [8765]);
+    assert.deepEqual(state.connectionWrites.map(info => info.port), [20765]);
   });
 
   it("retains the existing failure when no port can be rebound", async () => {
@@ -942,7 +942,7 @@ describe("post-bind listener ownership", () => {
     });
     const result = await api.start();
     assert.equal(result.success, false);
-    assert.match(result.error, /Could not bind to any port in range 8765-8774.*busy now/);
+    assert.match(result.error, /Could not bind to any port in range 20765-20774.*busy now/);
     assert.equal(state.servers[0].listening, false);
     assert.equal(state.connection, null);
   });
@@ -971,7 +971,7 @@ describe("post-bind listener ownership", () => {
     sandbox.shutdown();
     state.pendingStops.shift()();
     assert.equal((await pending).success, false);
-    assert.deepEqual(state.servers[0].binds, [8765]);
+    assert.deepEqual(state.servers[0].binds, [20765]);
     assert.equal(state.servers[0].stops, 1);
     assert.equal(state.connection, null);
   });
@@ -1014,16 +1014,16 @@ describe("post-bind listener ownership", () => {
 });
 
 describe("probe through S1's real httpd parser", () => {
-  it("moves to 8766 when another add-on server answers the probe with its default 404", async () => {
+  it("moves to 20766 when another add-on server answers the probe with its default 404", async () => {
     // The second server has only the harness's own "/" handler. Our probe
     // handler belongs to the lifecycle server and is never registered here.
     const other = createHttpdHarness();
-    other.server.identity.add("http", "127.0.0.1", 8765);
+    other.server.identity.add("http", "127.0.0.1", 20765);
     const { api, state } = loadServerLifecycle({ httpd: other, holdProbes: true, holdStops: true });
     const pending = api.start();
     const server = state.servers[0];
     const firstProbe = state.channels[0];
-    assert.deepEqual(server.binds, [8765]);
+    assert.deepEqual(server.binds, [20765]);
     assert.equal(server.listening, true);
     assert.equal(server.handlers.has(firstProbe.url.pathname), true);
     assert.match(firstProbe.url.pathname, /^\/thunderbird-mcp-probe\/[0-9a-f]{64}$/);
@@ -1034,10 +1034,10 @@ describe("probe through S1's real httpd parser", () => {
     assert.ok(firstProbe.exchange.wire.includes("\r\n\r\n"), "the default 404 has a complete response head");
     assert.deepEqual(firstProbe.exchange.errors, [], "the probe passes S1's request parser");
     assert.equal(other.requests.length, 0, "the random probe path does not reach the other server's root handler");
-    assert.ok(state.logs.some(args => String(args[0]).includes("port 8765 is answered by another listener")));
+    assert.ok(state.logs.some(args => String(args[0]).includes("port 20765 is answered by another listener")));
     assert.equal(server.stops, 1);
     assert.equal(state.pendingStops.length, 1);
-    assert.deepEqual(server.binds, [8765], "rebind must wait for stop completion");
+    assert.deepEqual(server.binds, [20765], "rebind must wait for stop completion");
     assert.equal(state.channels.length, 1);
     assert.equal(state.connection, null);
     assert.deepEqual(state.connectionWrites, []);
@@ -1048,19 +1048,19 @@ describe("probe through S1's real httpd parser", () => {
     state.httpd = null;
     state.pendingStops.shift()();
     await new Promise(setImmediate);
-    assert.deepEqual(server.binds, [8765, 8766]);
+    assert.deepEqual(server.binds, [20765, 20766]);
     assert.equal(state.channels.length, 2);
-    assert.equal(state.channels[1].url.port, "8766");
+    assert.equal(state.channels[1].url.port, "20766");
     assert.equal(state.connection, null, "do not publish before the final probe completes");
     state.channels[1].respond();
     const result = await pending;
     assert.equal(result.success, true);
-    assert.equal(result.port, 8766);
+    assert.equal(result.port, 20766);
     assert.equal(server.listening, true);
-    assert.equal(server.port, 8766);
+    assert.equal(server.port, 20766);
     assert.equal(server.stops, 1);
-    assert.deepEqual(state.connectionWrites.map(info => info.port), [8766]);
-    assert.equal(state.connection.port, 8766);
+    assert.deepEqual(state.connectionWrites.map(info => info.port), [20766]);
+    assert.equal(state.connection.port, 20766);
     assert.ok(!state.logs.some(args => String(args[0]).includes("inconclusive")));
     for (const channel of state.channels) {
       assert.deepEqual(channel.headers, { Connection: "close" });
@@ -1069,7 +1069,7 @@ describe("probe through S1's real httpd parser", () => {
     assert.doesNotMatch(firstProbe.requestWire, /Authorization|Bearer/i);
     assert.equal(firstProbe.requestWire.includes(state.connection.token), false);
     assert.equal(other.socket.closed, false, "only our listener is stopped");
-    assert.match(other.request("GET / HTTP/1.1\r\nHost: 127.0.0.1:8765\r\n\r\n").wire, /^HTTP\/1\.1 200 OK\r\n/);
+    assert.match(other.request("GET / HTTP/1.1\r\nHost: 127.0.0.1:20765\r\n\r\n").wire, /^HTTP\/1\.1 200 OK\r\n/);
   });
 
   for (const mode of ["loopback", "listenAll"]) {
@@ -1093,22 +1093,22 @@ describe("probe through S1's real httpd parser", () => {
 
 describe("options server status", () => {
   it("shows the non-default port notice and clears it as status changes", async () => {
-    let info = { running: true, port: 8766 };
+    let info = { running: true, port: 20766 };
     const ui = loadServerStatus({ getServerInfo: async () => {
       if (info instanceof Error) throw info;
       return info;
     } });
     for (const next of [
-      { running: true, port: 8765 },
-      { running: false, port: 8766 },
+      { running: true, port: 20765 },
+      { running: false, port: 20766 },
       { running: false, lastError: "Failed to start" },
       { running: true, port: null },
       new Error("API unavailable"),
     ]) {
-      info = { running: true, port: 8766 };
+      info = { running: true, port: 20766 };
       await ui.loadServerInfo();
       assert.equal(ui.serverPortNotice.hidden, false);
-      assert.match(ui.serverPortNotice.textContent, /8766.*8765/);
+      assert.match(ui.serverPortNotice.textContent, /20766.*20765/);
       assert.match(ui.serverPortNotice.textContent, /connection\.json.*stdio bridge/);
       info = next;
       await ui.loadServerInfo();
@@ -1146,7 +1146,7 @@ describe("options server status", () => {
     assert.equal(ui.retryServerBtn.hidden, true);
     assert.equal(ui.statusText.textContent, "Running");
     assert.equal(ui.statusDot.className, "status-dot running");
-    assert.equal(ui.serverPort.textContent, 8765);
+    assert.equal(ui.serverPort.textContent, 20765);
     assert.equal(ui.connFile.textContent, "/mock-tmp/thunderbird-mcp/connection.json");
     assert.equal((await api.getServerInfo()).lastError, null);
     assert.equal(ui.authRefreshes, 1);
@@ -1169,7 +1169,7 @@ describe("options server status", () => {
   });
 
   it("refreshes a previously running status when a listen-all restart fails", async () => {
-    let info = { running: true, port: 8765, lastError: null };
+    let info = { running: true, port: 20765, lastError: null };
     const ui = loadServerStatus({
       getServerInfo: async () => info,
       setListenAll: async () => {
@@ -1218,7 +1218,7 @@ describe("server startup lifecycle", () => {
     assert.equal((await api.start()).success, true);
     assert.equal(state.attempts, 2);
     assert.equal((await api.getServerInfo()).running, true);
-    assert.equal((await api.getServerInfo()).port, 8765);
+    assert.equal((await api.getServerInfo()).port, 20765);
     assert.equal((await api.getServerInfo()).lastError, null);
   });
 
@@ -1270,7 +1270,7 @@ describe("server startup lifecycle", () => {
 
     state.writeError = null;
     assert.equal((await api.start()).success, true);
-    assert.deepEqual(state.servers[1].binds, [8765]);
+    assert.deepEqual(state.servers[1].binds, [20765]);
     assert.equal((await api.getServerInfo()).running, true);
   });
 
@@ -1299,7 +1299,7 @@ describe("server startup lifecycle", () => {
   it("allows retry after exhausting the port range", async () => {
     const { api, sandbox, state } = loadServerLifecycle({ bindError: new Error("port busy") });
     assert.equal((await api.start()).success, false);
-    assert.deepEqual(state.servers[0].binds, Array.from({ length: 10 }, (_, i) => 8765 + i));
+    assert.deepEqual(state.servers[0].binds, Array.from({ length: 10 }, (_, i) => 20765 + i));
     assert.equal(state.servers[0].listening, false);
     assert.equal(state.timers.length, 0);
     assert.equal(sandbox.__tbMcpStartPromise, null);
@@ -1371,9 +1371,9 @@ describe("server startup lifecycle", () => {
       assert.equal((await secondSetter).success, true);
       assert.equal(state.attempts, 3);
       assert.equal(state.servers[1].listening, false);
-      assert.deepEqual(state.servers[2].binds, [8765]);
+      assert.deepEqual(state.servers[2].binds, [20765]);
       assert.equal(state.pendingStops.length, 0);
-      assert.equal(state.connection.port, 8765);
+      assert.equal(state.connection.port, 20765);
       assert.equal((await api.getServerInfo()).running, true);
     });
 
@@ -1398,8 +1398,8 @@ describe("server startup lifecycle", () => {
       assert.equal((await restart).success, true);
       assert.equal(state.attempts, 2);
       assert.equal(state.servers[0].listening, false);
-      assert.deepEqual(state.servers[1].binds, [8765]);
-      assert.equal(state.connection.port, 8765);
+      assert.deepEqual(state.servers[1].binds, [20765]);
+      assert.equal(state.connection.port, 20765);
       assert.equal((await api.getServerInfo()).running, true);
     });
 
@@ -1411,8 +1411,8 @@ describe("server startup lifecycle", () => {
       });
       const oldStart = api.start();
       await new Promise(setImmediate);
-      const newer = Promise.resolve({ success: true, port: 8770 });
-      const newerConnection = { port: 8770, token: "new", pid: 4242 };
+      const newer = Promise.resolve({ success: true, port: 20778770 });
+      const newerConnection = { port: 20778770, token: "new", pid: 4242 };
       sandbox.__tbMcpStartPromise = newer;
       sandbox.__tbMcpLastStartError = null;
       state.connection = newerConnection;
@@ -1440,7 +1440,7 @@ describe("server startup lifecycle", () => {
     state.pendingStops.shift()();
     assert.equal((await restart).success, true);
     assert.equal(state.servers[0].listening, false);
-    assert.deepEqual(state.servers[1].binds, [8765]);
+    assert.deepEqual(state.servers[1].binds, [20765]);
   });
 
   it("follows a direct retry that replaces the startup a setter is waiting for", async () => {
@@ -1464,7 +1464,7 @@ describe("server startup lifecycle", () => {
     assert.equal(state.attempts, 3);
     assert.equal(state.servers[0].listening, false);
     assert.equal(state.servers[1].listening, true);
-    assert.equal(state.connection.port, 8765);
+    assert.equal(state.connection.port, 20765);
     assert.equal((await api.getServerInfo()).running, true);
     assert.equal(sandbox.__tbMcpRestartPromise, null);
   });
@@ -1475,9 +1475,9 @@ describe("server startup lifecycle", () => {
     const restart = api.setListenAll(false);
     await new Promise(resolve => setImmediate(resolve));
 
-    const newerResult = { success: true, port: 8770 };
+    const newerResult = { success: true, port: 20778770 };
     const newer = Promise.resolve(newerResult);
-    const newerConnection = { port: 8770, token: "new", pid: 4242 };
+    const newerConnection = { port: 20778770, token: "new", pid: 4242 };
     sandbox.__tbMcpStartPromise = newer;
     state.connection = newerConnection;
     state.pendingStops.shift()();
@@ -1491,7 +1491,7 @@ describe("server startup lifecycle", () => {
   it("does not report running from a cached promise or stale connection file", async () => {
     const { api, sandbox, state } = loadServerLifecycle();
     sandbox.__tbMcpStartPromise = Promise.resolve({ success: false });
-    state.connection = { port: 8765, token: "old", pid: 1 };
+    state.connection = { port: 20765, token: "old", pid: 1 };
     assert.equal((await api.getServerInfo()).running, false);
   });
 
